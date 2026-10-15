@@ -7,8 +7,13 @@ const { pipeline } = require("node:stream/promises");
 const { readFile } = require("node:fs/promises");
 const { join } = require("node:path");
 
-const HOST = process.env.HOST || "127.0.0.1";
+const HOST = process.env.HOST || "0.0.0.0";
 const PORT = Number(process.env.PORT) || 3000;
+const allowedOrigins = new Set(
+  process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean)
+    : [`http://localhost:${PORT}`, `http://127.0.0.1:${PORT}`],
+);
 const BYTES_PER_MB = 1024 * 1024;
 const MAX_SESSION_BYTES = 1000 * BYTES_PER_MB;
 const MAX_CHUNK_BYTES = BYTES_PER_MB;
@@ -25,6 +30,30 @@ function sendJson(response, statusCode, data) {
     "X-Content-Type-Options": "nosniff",
   });
   response.end(body);
+}
+
+function handleCors(request, response) {
+  const origin = request.headers.origin;
+  if (origin && !allowedOrigins.has(origin)) {
+    sendJson(response, 403, { error: "This website is not allowed to use the transfer server." });
+    return false;
+  }
+
+  if (origin) {
+    response.setHeader("Access-Control-Allow-Origin", origin);
+    response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    response.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Session-Id");
+    response.setHeader("Access-Control-Expose-Headers", "Content-Length");
+    response.setHeader("Access-Control-Max-Age", "600");
+    response.setHeader("Vary", "Origin");
+  }
+
+  if (request.method === "OPTIONS") {
+    response.writeHead(204);
+    response.end();
+    return false;
+  }
+  return true;
 }
 
 function getSession(request, mode, bytes) {
@@ -198,6 +227,7 @@ async function handleRequest(request, response) {
 }
 
 const server = createServer((request, response) => {
+  if (!handleCors(request, response)) return;
   handleRequest(request, response).catch((error) => {
     if (response.headersSent || response.destroyed) {
       response.destroy();

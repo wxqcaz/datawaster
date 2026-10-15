@@ -228,6 +228,16 @@
             <span class="sr-only" id="limit-help">Choose a finite real data transfer limit between 1 and 1,000 megabytes.</span>
           </div>
           <div class="field">
+            <div class="field-top">
+              <label for="server-url">Transfer server URL</label>
+              <span class="field-hint">Required for GitHub Pages</span>
+            </div>
+            <div class="input-wrap">
+              <input id="server-url" type="url" placeholder="https://your-server.onrender.com" autocomplete="url" aria-describedby="server-help">
+            </div>
+            <span class="sr-only" id="server-help">Enter the HTTPS URL for your deployed Node.js transfer server.</span>
+          </div>
+          <div class="field">
             <div class="range-head">
               <label for="connections">Concurrent connections</label>
               <output class="range-value" id="connection-value" for="connections">16</output>
@@ -296,6 +306,7 @@
       const modeButtons = [...document.querySelectorAll(".mode-button")];
       const limitInput = document.getElementById("data-limit");
       const connectionsInput = document.getElementById("connections");
+      const serverUrlInput = document.getElementById("server-url");
       const startButton = document.getElementById("start-button");
       const downloadMeter = document.getElementById("download-meter");
       const uploadMeter = document.getElementById("upload-meter");
@@ -320,9 +331,24 @@
       const BYTES_PER_MB = 1024 * 1024;
       const MAX_CHUNK_BYTES = 1024 * 1024;
       const RANDOM_CHUNK_BYTES = 64 * 1024;
+      const SERVER_URL_STORAGE_KEY = "datawaster-server-url";
 
       const format = (number) => number.toFixed(2);
       const selectedLimit = () => Math.min(1000, Math.max(1, Number(limitInput.value) || 1));
+      const queryServerUrl = new URLSearchParams(window.location.search).get("api");
+      serverUrlInput.value = queryServerUrl || localStorage.getItem(SERVER_URL_STORAGE_KEY) || "";
+
+      function apiUrl(path) {
+        const configuredUrl = serverUrlInput.value.trim();
+        const base = configuredUrl ? new URL(configuredUrl) : new URL(window.location.origin);
+        if (base.protocol !== "https:" && !(base.protocol === "http:" && ["localhost", "127.0.0.1", "::1"].includes(base.hostname))) {
+          throw new Error("Use an HTTPS transfer server URL (HTTP is allowed only on localhost).");
+        }
+        if (base.username || base.password || base.search || base.hash) {
+          throw new Error("Enter only the transfer server's base URL, without login details, query, or fragment.");
+        }
+        return `${base.href.replace(/\/+$/, "")}${path}`;
+      }
 
       function updateDisplay() {
         const transferredBytes = downloadedBytes + uploadedBytes;
@@ -404,6 +430,12 @@
         limitInput.value = String(selectedLimit());
         updateDisplay();
       });
+      serverUrlInput.addEventListener("change", () => {
+        const value = serverUrlInput.value.trim().replace(/\/+$/, "");
+        serverUrlInput.value = value;
+        if (value) localStorage.setItem(SERVER_URL_STORAGE_KEY, value);
+        else localStorage.removeItem(SERVER_URL_STORAGE_KEY);
+      });
 
       async function readError(response) {
         try {
@@ -416,7 +448,7 @@
       }
 
       async function createSession(runId, controller) {
-        const response = await fetch("/api/session", {
+        const response = await fetch(apiUrl("/api/session"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ limitBytes: targetBytes, mode }),
@@ -441,7 +473,7 @@
         activeRequests.add(controller);
         try {
           if (mode === "download") {
-            const response = await fetch(`/api/download?bytes=${bytes}`, {
+            const response = await fetch(apiUrl(`/api/download?bytes=${bytes}`), {
               headers: { "X-Session-Id": sessionId },
               signal: controller.signal,
               cache: "no-store",
@@ -465,7 +497,7 @@
             }
           } else {
             const payload = makeRandomPayload(bytes);
-            const response = await fetch(`/api/upload?bytes=${bytes}`, {
+            const response = await fetch(apiUrl(`/api/upload?bytes=${bytes}`), {
               method: "POST",
               headers: {
                 "Content-Type": "application/octet-stream",
@@ -500,8 +532,20 @@
           errorMessage.textContent = "Run the app server first with npm start, then open http://localhost:3000.";
           return;
         }
+        if (!serverUrlInput.value.trim() && window.location.hostname.endsWith("github.io")) {
+          errorMessage.textContent = "GitHub Pages cannot run the transfer server. Deploy server.js separately, then enter its HTTPS URL above.";
+          statusLabel.textContent = "CONFIG REQUIRED";
+          return;
+        }
         if (!window.isSecureContext || !window.crypto || typeof window.crypto.getRandomValues !== "function") {
           errorMessage.textContent = "A secure browser context is required. Open this app on localhost or over HTTPS.";
+          return;
+        }
+        try {
+          apiUrl("/api/session");
+        } catch (error) {
+          errorMessage.textContent = error.message;
+          statusLabel.textContent = "CONFIG ERROR";
           return;
         }
 
@@ -542,7 +586,10 @@
           }
         } catch (error) {
           if (runId === generation && running && error.name !== "AbortError") {
-            stopTransfer("ERROR", error.message || "The transfer failed. Check that the server is running.");
+            const message = error.message === "Failed to fetch"
+              ? "Could not reach the transfer server. Check its URL, HTTPS certificate, and ALLOWED_ORIGINS CORS setting."
+              : error.message || "The transfer failed. Check that the server is running.";
+            stopTransfer("ERROR", message);
           }
         } finally {
           activeRequests.delete(started);
