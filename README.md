@@ -14,13 +14,13 @@ Open <http://localhost:3000>. Do not open `index.html` directly: the page needs 
 
 ## GitHub Pages and backend hosting
 
-GitHub Pages serves static files only; it cannot run the Node.js transfer API. Deploy this repository's server separately, then enter the server's HTTPS base URL in the **Transfer server URL** field on the Pages site. The setting is saved in that browser. For example, enter `https://datawaster-api.onrender.com` (use the actual URL assigned by your host).
+GitHub Pages serves static files only; it cannot run the Node.js transfer API. The GitHub Pages build in this repository is configured to use `https://datawaster-api.onrender.com` automatically, so visitors do not need to enter a server URL.
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/wxqcaz/datawaster)
 
-Click **Deploy to Render**, sign in or authorize GitHub if prompted, then deploy the `datawaster-api` service. Render creates the server from `render.yaml` and allows browser requests from `https://wxqcaz.github.io`. After deployment, copy its HTTPS service URL once into the Pages site's **Transfer server URL** field. The page remembers it in that browser, so later transfers start with one click. If your Pages site uses a different origin, update the server's `ALLOWED_ORIGINS` environment variable to that exact origin, with no path or trailing slash, then redeploy.
+Click **Deploy to Render**, sign in or authorize GitHub if prompted, then deploy the `datawaster-api` service. Render creates the server from `render.yaml` and allows browser requests from `https://wxqcaz.github.io`. The GitHub Pages frontend and Render service URL must match; if Render assigns a different service URL, update `API_BASE_URL` in `index.html` and push the change. If your Pages site uses a different origin, update the server's `ALLOWED_ORIGINS` environment variable to that exact origin, with no path or trailing slash, then redeploy.
 
-To run the frontend and backend together locally, use `npm start` and open <http://localhost:3000>; leave **Transfer server URL** blank.
+To run the frontend and backend together locally, use `npm start` and open <http://localhost:3000>; the app automatically uses the local server outside GitHub Pages.
 
 The server checks the browser's `Origin` against `ALLOWED_ORIGINS` (a comma-separated list). This is a browser CORS policy, **not authentication**: anyone able to reach the server can call its API directly. Do not expose a public server unless you accept the possibility of bandwidth and hosting charges.
 
