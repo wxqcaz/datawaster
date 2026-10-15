@@ -224,6 +224,13 @@ class DataWaster {
   startDownload() {
     const threadsToUse = this.#isUploadMode ? Math.floor(this.#threadCount / 2) : this.#threadCount;
 
+    if (this.#targetSize === 0) {
+      for (let threadId = 0; threadId < threadsToUse; threadId++) {
+        this.downloadWithoutRange(threadId);
+      }
+      return;
+    }
+
     this.getFileSize().then(fileSize => {
       let sizePerThread = Math.ceil(this.#targetSize / threadsToUse);
 
@@ -367,7 +374,9 @@ class DataWaster {
           if (!this.#running) break;
 
           const remainingNeeded = this.#targetSize - (this.#bytesDownloaded + this.#bytesUploaded);
-          const bytesToCount = Math.min(value.length, remainingNeeded);
+          const bytesToCount = this.#targetSize === 0
+            ? value.length
+            : Math.min(value.length, remainingNeeded);
 
           this.#bytesDownloaded += bytesToCount;
 
@@ -396,6 +405,13 @@ class DataWaster {
 
   startUpload() {
     const threadsToUse = this.#isDownloadMode ? Math.floor(this.#threadCount / 2) : this.#threadCount;
+
+    if (this.#targetSize === 0) {
+      for (let threadId = 0; threadId < threadsToUse; threadId++) {
+        this.uploadChunk(threadId, 0);
+      }
+      return;
+    }
 
     for (let i = 0; i < threadsToUse; i++) {
       const sizePerThread = Math.ceil(this.#targetSize / threadsToUse);
