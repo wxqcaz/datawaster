@@ -1,569 +1,210 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#10110f">
-  <meta name="description" content="A capped bandwidth tool that transfers real data through its server.">
-  <title>Data Waster — real bandwidth tool</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data waster</title>
+
+  <meta name="title" content="Data waster - waste your data">
+  <meta name="description" content="The fastest and the most efficient way to waste your valuable mobile data">
+  <meta name="keywords" content="network usage, download speed, upload speed, network performance">
+  <meta name="author" content="HLETRD">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hletrd.github.io/data-waster/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hletrd.github.io/data-waster/">
+  <meta property="og:title" content="Data waster - waste your data">
+  <meta property="og:description" content="The fastest and the most efficient way to waste your valuable mobile data">
+  <meta property="og:image" content="https://hletrd.github.io/data-waster/og-image.jpg">
+  <meta property="og:site_name" content="Data waster">
+
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://hletrd.github.io/data-waster/">
+  <meta property="twitter:title" content="Data waster - waste your data">
+  <meta property="twitter:description" content="The fastest and the most efficient way to waste your valuable mobile data">
+  <meta property="twitter:image" content="https://hletrd.github.io/data-waster/og-image.jpg">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+
   <style>
-    :root {
-      color-scheme: dark;
-      --bg: #10110f;
-      --panel: #171916;
-      --panel-soft: #1c1f1b;
-      --line: #30332e;
-      --text: #f1f2ed;
-      --muted: #92978d;
-      --lime: #c4f36a;
-      --purple: #b9a1ff;
-      --orange: #f4a66a;
-      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    .value-number {
+      font-weight: 700 !important;
     }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      -webkit-font-smoothing: antialiased;
+    .form-range {
+      width: 100%;
     }
-    button, input { font: inherit; }
-    button { color: inherit; }
-    .shell { width: min(1040px, calc(100% - 40px)); margin: 0 auto; }
-    .topbar {
-      height: 76px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--line);
+    .form-range::-webkit-slider-thumb {
+      cursor: pointer;
     }
-    .brand { display: flex; gap: 11px; align-items: center; font-size: 15px; font-weight: 700; letter-spacing: -.03em; }
-    .brand-mark {
-      width: 31px; height: 31px; display: grid; place-items: center;
-      border-radius: 9px; background: var(--lime); color: #171a12;
+    .form-control {
+      text-align: right;
     }
-    .brand-mark svg { width: 18px; height: 18px; }
-    .top-note {
-      display: flex; gap: 8px; align-items: center;
-      color: var(--muted); font-size: 12px; letter-spacing: .01em;
+    #uploadProgress, #downloadProgress {
+      height: 5px;
+      transition: width 0.1s ease;
     }
-    .safe-dot { width: 7px; height: 7px; background: var(--orange); border-radius: 50%; }
-
-    main { padding: 65px 0 56px; }
-    .eyebrow {
-      display: flex; align-items: center; gap: 9px; color: var(--lime);
-      text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: .15em;
+    @media (max-width: 768px) {
+      #title {
+        font-size: 2.5rem;
+      }
     }
-    .eyebrow-line { width: 22px; height: 1px; background: currentColor; }
-    h1 { margin: 17px 0 10px; font-size: clamp(42px, 7vw, 68px); line-height: .99; letter-spacing: -.075em; }
-    h1 span { color: var(--lime); }
-    .intro { max-width: 570px; margin: 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
-    .sim-banner {
-      display: flex; gap: 12px; align-items: flex-start; margin: 32px 0 20px;
-      padding: 14px 16px; border: 1px solid #48442e; border-radius: 10px;
-      background: #211f17; color: #d5cba7; font-size: 12px; line-height: 1.55;
-    }
-    .sim-banner svg { flex: 0 0 auto; margin-top: 1px; color: var(--orange); }
-    .sim-banner strong { color: #f0dfaa; font-weight: 650; }
-    .error-message { margin: 10px 0 0; color: #ff9b91; font-size: 11px; line-height: 1.5; }
-    .error-message:empty { display: none; }
-
-    .workspace { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr); gap: 16px; }
-    .card { min-width: 0; border: 1px solid var(--line); border-radius: 13px; background: var(--panel); }
-    .controls { padding: 24px; }
-    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 19px; }
-    .section-title { margin: 0; font-size: 13px; font-weight: 650; letter-spacing: -.01em; }
-    .step { color: #74796f; font-size: 11px; }
-    .mode-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
-    .mode-button {
-      display: flex; justify-content: flex-start; align-items: center; gap: 10px;
-      height: 47px; padding: 0 13px; border: 1px solid var(--line); border-radius: 8px;
-      background: var(--panel-soft); color: #a7aca2; cursor: pointer; transition: .15s ease;
-    }
-    .mode-button:hover { border-color: #555a50; color: var(--text); }
-    .mode-button[aria-pressed="true"] { border-color: var(--lime); background: #20271a; color: var(--lime); }
-    .mode-button[data-mode="upload"][aria-pressed="true"] { border-color: var(--purple); background: #211e2c; color: var(--purple); }
-    .mode-button svg { width: 16px; height: 16px; }
-    .field { margin-top: 25px; }
-    .field-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .field label, .field-label { color: #d6d9d2; font-size: 12px; font-weight: 550; }
-    .field-hint { color: #73786f; font-size: 11px; }
-    .input-wrap { position: relative; }
-    .input-wrap input {
-      width: 100%; height: 45px; padding: 0 54px 0 13px;
-      border: 1px solid var(--line); border-radius: 7px; outline: none;
-      background: #111310; color: var(--text); font-size: 14px;
-    }
-    .input-wrap input:focus { border-color: var(--lime); box-shadow: 0 0 0 3px #c4f36a18; }
-    .input-suffix { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); color: #73786f; font-size: 11px; pointer-events: none; }
-    .range-head { display: flex; justify-content: space-between; align-items: center; }
-    .range-value { color: var(--lime); font: 600 12px ui-monospace, SFMono-Regular, Consolas, monospace; }
-    input[type="range"] {
-      width: 100%; height: 4px; margin: 17px 0 9px; appearance: none;
-      border-radius: 10px; background: #343830; accent-color: var(--lime); cursor: pointer;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-      width: 14px; height: 14px; appearance: none; border: 3px solid var(--panel);
-      border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 1px var(--lime);
-    }
-    input[type="range"]::-moz-range-thumb { width: 10px; height: 10px; border: 3px solid var(--panel); border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 1px var(--lime); }
-    .range-ends { display: flex; justify-content: space-between; color: #73786f; font-size: 10px; }
-    .primary-button {
-      width: 100%; height: 47px; display: flex; align-items: center; justify-content: center; gap: 9px;
-      margin-top: 26px; border: 0; border-radius: 7px; background: var(--lime); color: #171a12;
-      font-size: 13px; font-weight: 750; cursor: pointer; transition: .15s ease;
-    }
-    .primary-button:hover:not(:disabled) { background: #d2fb86; transform: translateY(-1px); }
-    .primary-button:disabled { cursor: not-allowed; opacity: .72; }
-    .primary-button svg { width: 15px; height: 15px; }
-    .control-foot { margin: 12px 0 0; color: #74796f; text-align: center; font-size: 10px; line-height: 1.5; }
-
-    .monitor { display: flex; flex-direction: column; padding: 24px; }
-    .live-status { display: flex; align-items: center; gap: 7px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 20px; color: var(--muted); font-size: 10px; }
-    .status-light { width: 6px; height: 6px; background: #62675e; border-radius: 50%; }
-    .live-status.is-running { color: var(--lime); border-color: #475632; }
-    .live-status.is-running .status-light { background: var(--lime); box-shadow: 0 0 9px #c4f36a88; animation: pulse 1.3s infinite; }
-    .live-status.is-error { color: #ff9b91; border-color: #5b3431; }
-    .live-status.is-error .status-light { background: #ff9b91; }
-    @keyframes pulse { 50% { opacity: .4; } }
-    .metric-primary { padding: 18px 0 16px; border-bottom: 1px solid var(--line); }
-    .metric-caption { color: var(--muted); font-size: 11px; }
-    .big-metric { margin-top: 6px; font-size: 39px; line-height: 1.1; letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
-    .big-metric small { color: #92978d; font-size: 14px; font-weight: 500; letter-spacing: -.02em; }
-    .meter { display: flex; height: 7px; overflow: hidden; margin: 17px 0 9px; border-radius: 8px; background: #2b2e29; }
-    .meter-download { width: 0; background: var(--lime); transition: width .2s linear; }
-    .meter-upload { width: 0; background: var(--purple); transition: width .2s linear; }
-    .meter-labels { display: flex; justify-content: space-between; color: #73786f; font-size: 10px; }
-    .meter-legend { display: flex; gap: 14px; }
-    .legend-item { display: flex; align-items: center; gap: 5px; }
-    .legend-dot { width: 6px; height: 6px; border-radius: 2px; background: var(--lime); }
-    .legend-dot.upload { background: var(--purple); }
-    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 8px; }
-    .stat { padding: 14px 0 3px; }
-    .stat:nth-child(even) { padding-left: 16px; border-left: 1px solid var(--line); }
-    .stat-label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; }
-    .stat-value { margin-top: 7px; font-size: 17px; font-weight: 620; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
-    .stat-value small { color: var(--muted); font-size: 10px; font-weight: 450; }
-    .stat-dot { width: 6px; height: 6px; border-radius: 2px; background: var(--lime); }
-    .stat-dot.upload { background: var(--purple); }
-    .monitor-bottom { display: flex; justify-content: space-between; margin-top: auto; padding-top: 17px; color: #73786f; font-size: 10px; }
-
-    footer { display: flex; justify-content: space-between; gap: 20px; padding: 20px 0 28px; border-top: 1px solid var(--line); color: #70756c; font-size: 10px; }
-    footer a { color: #a3a89e; text-decoration: none; }
-    footer a:hover { color: var(--lime); }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-
-    @media (max-width: 700px) {
-      .shell { width: min(100% - 30px, 520px); }
-      .topbar { height: 64px; }
-      main { padding: 48px 0 40px; }
-      .workspace { grid-template-columns: minmax(0, 1fr); }
-      .controls, .monitor { padding: 20px; }
-      .monitor { min-height: 330px; }
-      .intro { font-size: 14px; }
-      .sim-banner { margin-top: 25px; }
-      footer { flex-direction: column; gap: 8px; }
-    }
-    @media (max-width: 390px) {
-      .top-note { font-size: 10px; }
-      .mode-button { min-width: 0; padding: 0 9px; font-size: 12px; }
-    }
-    @media (max-width: 340px) {
-      .step { display: none; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #121212;
+        color: #e1e1e1;
+      }
+      .bg-body-tertiary {
+        background-color: #242424 !important;
+      }
+      .text-body-secondary {
+        color: #adb5bd !important;
+      }
+      .form-control {
+        background-color: #333;
+        color: #e1e1e1;
+        border-color: #444;
+      }
+      .form-control:focus {
+        background-color: #333;
+        color: #e1e1e1;
+      }
+      .border-top {
+        border-color: #444 !important;
+      }
+      .text-muted {
+        color: #adb5bd !important;
+      }
     }
   </style>
+
+  <script src="./digitalWaste.js" defer></script>
+  <script src="./app.js" defer></script>
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Data waster",
+      "url": "https://hletrd.github.io/data-waster/",
+      "description": "The fastest and the most efficient way to waste your valuable mobile data",
+      "applicationCategory": "UtilityApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "HLETRD"
+      }
+    }
+  </script>
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <div class="brand">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M13.4 2.8 5.7 13h5.1l-.4 8.2L18.3 11h-5.2l.3-8.2Z" fill="currentColor"/></svg>
-        </span>
-        <span>datawaster<span style="color:var(--lime)">.</span></span>
-      </div>
-      <div class="top-note"><span class="safe-dot"></span> REAL DATA TRANSFER</div>
-    </header>
+  <div class="container py-2 py-md-4">
+    <div class="p-3 p-md-5 mb-4 bg-body-tertiary rounded-3">
+      <div class="container-fluid py-2 py-md-3">
+        <h1 class="display-5 fw-bold" id="title">Data waster</h1>
+        <p class="col-md-12 fs-4" id="desc">The fastest and most efficient way to waste your valuable mobile data.</p>
+        <hr>
 
-    <main>
-      <div class="eyebrow"><span class="eyebrow-line"></span> Bandwidth playground</div>
-      <h1>Waste data.<br><span>Not money.</span></h1>
-      <p class="intro">Send and receive real random data through this app's server. Choose a transfer direction, set a limit, and monitor bandwidth as it moves.</p>
+        <div class="row mb-3">
+          <div class="col-md-6 mb-3 d-flex align-items-center">
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-primary active" id="downloadOption" data-active="true">
+                <span id="downloadLabel">Download</span>
+              </button>
+              <button type="button" class="btn btn-outline-success" id="uploadOption" data-active="false">
+                <span id="uploadLabel">Upload</span>
+              </button>
+            </div>
+            <small class="text-muted ms-3" id="toggleHint">Select at least one direction</small>
+          </div>
+        </div>
 
-      <div class="sim-banner" role="note">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8v4m0 4h.01M10.3 3.9 2.7 17.1A2 2 0 0 0 4.4 20h15.2a2 2 0 0 0 1.7-2.9L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div><strong>This transfers real data.</strong> On localhost, bytes stay on this device. To use cellular or internet bandwidth, access a remote deployment; carrier and hosting charges may apply. Each run is capped at 1,000 MB; stop anytime.</div>
-      </div>
+        <div class="row mb-3">
+          <div class="col-md-6 mb-2 mb-md-0">
+            <label for="dataSize" class="form-label" id="sizeLabel">Data size (MB, 0 for infinite):</label>
+            <input type="number" class="form-control" id="dataSize" value="10000" min="0" max="10000000">
+          </div>
+          <div class="col-md-6 mt-1 mt-md-0">
+            <div class="d-flex align-items-center">
+              <label for="threadCount" class="form-label me-2" id="threadLabel">Concurrent connections:</label>
+              <span id="threadValue" class="fw-bold" style="position: relative; top: -4px;"></span>
+            </div>
+            <input type="range" class="form-range" id="threadCount" min="1" max="64" value="16" style="margin-top: 6px;">
+          </div>
+        </div>
 
-      <div class="workspace">
-        <section class="card controls" aria-labelledby="settings-heading">
-          <div class="section-head">
-            <h2 class="section-title" id="settings-heading">Configure your session</h2>
-            <span class="step">01 / SETTINGS</span>
+        <div class="row">
+          <div class="col-12 mb-3">
+            <button class="btn btn-primary btn-lg w-100" type="button" id="startButton">Start</button>
           </div>
-          <div class="mode-options" role="group" aria-label="Activity direction">
-            <button class="mode-button" type="button" data-mode="download" aria-pressed="true">
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.5v10m0 0 4-4m-4 4-4-4M3 14v2.5h14V14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Download
-            </button>
-            <button class="mode-button" type="button" data-mode="upload" aria-pressed="false">
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 17.5v-10m0 0 4 4m-4-4-4 4M3 6V3.5h14V6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Upload
-            </button>
-          </div>
-          <div class="field">
-            <div class="field-top">
-              <label for="data-limit">Session data limit</label>
-              <span class="field-hint">Maximum 1,000 MB / run</span>
-            </div>
-            <div class="input-wrap">
-              <input id="data-limit" type="number" value="100" min="1" max="1000" step="1" inputmode="numeric" aria-describedby="limit-help">
-              <span class="input-suffix">MB</span>
-            </div>
-            <span class="sr-only" id="limit-help">Choose a finite real data transfer limit between 1 and 1,000 megabytes.</span>
-          </div>
-          <div class="field">
-            <div class="range-head">
-              <label for="connections">Concurrent connections</label>
-              <output class="range-value" id="connection-value" for="connections">16</output>
-            </div>
-            <input id="connections" type="range" min="1" max="64" value="16">
-            <div class="range-ends"><span>1 connection</span><span>64 connections</span></div>
-          </div>
-          <button class="primary-button" id="start-button" type="button">
-            <svg id="button-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m7 4.5 8 5.5-8 5.5v-11Z" fill="currentColor"/></svg>
-            <span id="button-label">Start transfer</span>
-          </button>
-          <p class="control-foot">Transfers random bytes to this app's server · Stop anytime</p>
-          <p class="error-message" id="error-message" role="status" aria-live="polite"></p>
-        </section>
+        </div>
 
-        <section class="card monitor" aria-labelledby="monitor-heading">
-          <div class="section-head">
-            <h2 class="section-title" id="monitor-heading">Live monitor</h2>
-            <span class="live-status" id="status"><span class="status-light"></span><span id="status-label">READY</span></span>
-          </div>
-          <div class="metric-primary">
-            <div class="metric-caption">Total transferred</div>
-            <div class="big-metric"><span id="total-value">0.00</span> <small>MB</small></div>
-            <div class="meter" id="progress-meter" role="progressbar" aria-label="Data transfer progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-              <div class="meter-download" id="download-meter"></div>
-              <div class="meter-upload" id="upload-meter"></div>
-            </div>
-            <div class="meter-labels">
-              <div class="meter-legend">
-                <span class="legend-item"><span class="legend-dot"></span>Download</span>
-                <span class="legend-item"><span class="legend-dot upload"></span>Upload</span>
+        <div class="row mb-2">
+          <div class="col-12">
+            <div class="progress-stacked" style="height: 8px;">
+              <div class="progress h-100" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+                <div class="progress-bar bg-primary h-100" id="downloadProgress"></div>
               </div>
-              <span><span id="progress-value">0</span>%</span>
+              <div class="progress h-100" role="progressbar" aria-label="Upload progress" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+                <div class="progress-bar bg-success h-100" id="uploadProgress"></div>
+              </div>
             </div>
           </div>
-          <div class="stats">
-            <div class="stat">
-              <div class="stat-label"><span class="stat-dot"></span>Downloaded</div>
-              <div class="stat-value"><span id="download-value">0.00</span> <small>MB</small></div>
-            </div>
-            <div class="stat">
-              <div class="stat-label"><span class="stat-dot upload"></span>Uploaded</div>
-              <div class="stat-value"><span id="upload-value">0.00</span> <small>MB</small></div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Current speed</div>
-              <div class="stat-value"><span id="speed-value">0.00</span> <small>MB/s</small></div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Session time</div>
-              <div class="stat-value"><span id="time-value">00:00</span></div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-12 mb-2">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="value-number" id="totalBytesProcessed">0</span>
+                <span id="totalProgressLabel">MB total</span>
+              </div>
+              <div class="text-end">
+                <span class="value-number" id="totalTransferSpeed">0</span>
+                <span id="totalSpeedLabel">MB/sec</span>
+              </div>
             </div>
           </div>
-          <div class="monitor-bottom"><span>SESSION LIMIT</span><span><span id="limit-value">100</span> MB</span></div>
-        </section>
+          <div class="col-md-6">
+            <div class="d-flex align-items-center">
+              <div class="me-2">
+                <svg width="12" height="12"><rect width="12" height="12" style="fill:#0d6efd" /></svg>
+              </div>
+              <div>
+                <span class="value-number" id="bytesDownloaded">0</span>
+                <span id="downloadProgressLabel">MB downloaded</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <div class="d-flex align-items-center justify-content-md-end">
+              <div class="me-2">
+                <svg width="12" height="12"><rect width="12" height="12" style="fill:#198754" /></svg>
+              </div>
+              <div>
+                <span class="value-number" id="bytesUploaded">0</span>
+                <span id="uploadProgressLabel">MB uploaded</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-12">
+            <p id="statusMessage" class="text-warning"></p>
+          </div>
+        </div>
+
+        <footer class="pt-3 mt-4 text-body-secondary border-top">
+          Created &amp; maintained by HLETRD
+        </footer>
       </div>
-    </main>
-
-    <footer>
-      <span>A bandwidth tool for curious minds.</span>
-      <span>Real network traffic · Stop anytime · <a href="https://github.com/hletrd/data-waster" target="_blank" rel="noreferrer">Inspired by an open-source project</a></span>
-    </footer>
+    </div>
   </div>
-  <script>
-    (() => {
-      const modeButtons = [...document.querySelectorAll(".mode-button")];
-      const limitInput = document.getElementById("data-limit");
-      const connectionsInput = document.getElementById("connections");
-      const startButton = document.getElementById("start-button");
-      const downloadMeter = document.getElementById("download-meter");
-      const uploadMeter = document.getElementById("upload-meter");
-      const status = document.getElementById("status");
-      const statusLabel = document.getElementById("status-label");
-      const errorMessage = document.getElementById("error-message");
-      const progressMeter = document.getElementById("progress-meter");
-
-      let mode = "download";
-      let running = false;
-      let downloadedBytes = 0;
-      let uploadedBytes = 0;
-      let targetBytes = 100 * 1024 * 1024;
-      let startedAt = 0;
-      let elapsedMs = 0;
-      let displayTimer = null;
-      let generation = 0;
-      let currentSpeed = 0;
-      let lastSampleAt = 0;
-      let lastSampleBytes = 0;
-      const activeRequests = new Set();
-      const BYTES_PER_MB = 1024 * 1024;
-      const MAX_CHUNK_BYTES = 1024 * 1024;
-      const RANDOM_CHUNK_BYTES = 64 * 1024;
-      const API_BASE_URL = window.location.hostname.endsWith("github.io")
-        ? "https://datawaster-api.onrender.com"
-        : window.location.origin;
-
-      const format = (number) => number.toFixed(2);
-      const selectedLimit = () => Math.min(1000, Math.max(1, Number(limitInput.value) || 1));
-
-      function apiUrl(path) {
-        return `${API_BASE_URL}${path}`;
-      }
-
-      function updateDisplay() {
-        const transferredBytes = downloadedBytes + uploadedBytes;
-        const limitBytes = selectedLimit() * BYTES_PER_MB;
-        const progress = Math.min(100, transferredBytes / limitBytes * 100);
-        const now = performance.now();
-        const sampleMs = now - lastSampleAt;
-
-        if (sampleMs >= 500) {
-          currentSpeed = (transferredBytes - lastSampleBytes) / BYTES_PER_MB / (sampleMs / 1000);
-          lastSampleAt = now;
-          lastSampleBytes = transferredBytes;
-        }
-
-        const activeElapsed = running ? now - startedAt : elapsedMs;
-        document.getElementById("total-value").textContent = format(transferredBytes / BYTES_PER_MB);
-        document.getElementById("download-value").textContent = format(downloadedBytes / BYTES_PER_MB);
-        document.getElementById("upload-value").textContent = format(uploadedBytes / BYTES_PER_MB);
-        document.getElementById("speed-value").textContent = format(running ? currentSpeed : 0);
-        document.getElementById("progress-value").textContent = String(Math.floor(progress));
-        document.getElementById("time-value").textContent =
-          `${String(Math.floor(activeElapsed / 60_000)).padStart(2, "0")}:${String(Math.floor(activeElapsed / 1000) % 60).padStart(2, "0")}`;
-        document.getElementById("limit-value").textContent = String(selectedLimit());
-        downloadMeter.style.width = `${downloadedBytes / limitBytes * 100}%`;
-        uploadMeter.style.width = `${uploadedBytes / limitBytes * 100}%`;
-        progressMeter.setAttribute("aria-valuenow", String(progress.toFixed(1)));
-      }
-
-      function setRunning(next, label = "READY") {
-        running = next;
-        startButton.querySelector("#button-label").textContent = running ? "Stop transfer" : "Start transfer";
-        startButton.querySelector("#button-icon").innerHTML = running
-          ? '<path d="M5.5 5.5h9v9h-9z" fill="currentColor"/>'
-          : '<path d="m7 4.5 8 5.5-8 5.5v-11Z" fill="currentColor"/>';
-        status.classList.toggle("is-running", running);
-        status.classList.toggle("is-error", !running && label === "ERROR");
-        statusLabel.textContent = running ? "RUNNING" : label;
-        modeButtons.forEach((button) => { button.disabled = running; });
-        limitInput.disabled = running;
-        connectionsInput.disabled = running;
-      }
-
-      function stopTransfer(label = "READY", message = "") {
-        if (!running) return;
-        running = false;
-        generation += 1;
-        elapsedMs = performance.now() - startedAt;
-        if (displayTimer !== null) {
-          window.clearInterval(displayTimer);
-          displayTimer = null;
-        }
-        activeRequests.forEach((controller) => controller.abort());
-        activeRequests.clear();
-        setRunning(false, label);
-        errorMessage.textContent = message;
-        updateDisplay();
-      }
-
-      modeButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          if (running) return;
-          mode = button.dataset.mode;
-          modeButtons.forEach((option) => option.setAttribute("aria-pressed", String(option === button)));
-          downloadedBytes = 0;
-          uploadedBytes = 0;
-          elapsedMs = 0;
-          errorMessage.textContent = "";
-          statusLabel.textContent = "READY";
-          updateDisplay();
-        });
-      });
-
-      connectionsInput.addEventListener("input", () => {
-        document.getElementById("connection-value").textContent = connectionsInput.value;
-        updateDisplay();
-      });
-
-      limitInput.addEventListener("change", () => {
-        limitInput.value = String(selectedLimit());
-        updateDisplay();
-      });
-      async function readError(response) {
-        try {
-          const result = await response.json();
-          if (typeof result.error === "string") return result.error;
-        } catch {
-          // Use the HTTP status below if the server did not return JSON.
-        }
-        return `Transfer server returned HTTP ${response.status}.`;
-      }
-
-      async function createSession(runId, controller) {
-        const response = await fetch(apiUrl("/api/session"), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ limitBytes: targetBytes, mode }),
-          signal: controller.signal,
-          cache: "no-store",
-        });
-        if (!response.ok) throw new Error(await readError(response));
-        if (runId !== generation || !running) return null;
-        return response.json();
-      }
-
-      function makeRandomPayload(bytes) {
-        const payload = new Uint8Array(bytes);
-        for (let offset = 0; offset < bytes; offset += RANDOM_CHUNK_BYTES) {
-          crypto.getRandomValues(payload.subarray(offset, Math.min(offset + RANDOM_CHUNK_BYTES, bytes)));
-        }
-        return payload;
-      }
-
-      async function transferChunk(runId, sessionId, bytes) {
-        const controller = new AbortController();
-        activeRequests.add(controller);
-        try {
-          if (mode === "download") {
-            const response = await fetch(apiUrl(`/api/download?bytes=${bytes}`), {
-              headers: { "X-Session-Id": sessionId },
-              signal: controller.signal,
-              cache: "no-store",
-            });
-            if (!response.ok) throw new Error(await readError(response));
-            if (Number(response.headers.get("content-length")) !== bytes || !response.body) {
-              throw new Error("The server returned an unexpected download size.");
-            }
-
-            const reader = response.body.getReader();
-            try {
-              while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                if (runId !== generation || !running) return;
-                downloadedBytes += value.byteLength;
-                updateDisplay();
-              }
-            } finally {
-              reader.releaseLock();
-            }
-          } else {
-            const payload = makeRandomPayload(bytes);
-            const response = await fetch(apiUrl(`/api/upload?bytes=${bytes}`), {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/octet-stream",
-                "X-Session-Id": sessionId,
-              },
-              body: payload,
-              signal: controller.signal,
-              cache: "no-store",
-            });
-            if (!response.ok) throw new Error(await readError(response));
-            const result = await response.json();
-            if (result.receivedBytes !== bytes) throw new Error("The server did not confirm the full upload.");
-            if (runId !== generation || !running) return;
-            uploadedBytes += result.receivedBytes;
-            updateDisplay();
-          }
-        } finally {
-          activeRequests.delete(controller);
-        }
-      }
-
-      async function runWorker(runId, sessionId, reserveChunk) {
-        while (running && runId === generation) {
-          const bytes = reserveChunk();
-          if (!bytes) return;
-          await transferChunk(runId, sessionId, bytes);
-        }
-      }
-
-      async function startTransfer() {
-        if (!window.isSecureContext || !window.crypto || typeof window.crypto.getRandomValues !== "function") {
-          errorMessage.textContent = "A secure browser context is required. Open this app on localhost or over HTTPS.";
-          return;
-        }
-
-        downloadedBytes = 0;
-        uploadedBytes = 0;
-        elapsedMs = 0;
-        currentSpeed = 0;
-        errorMessage.textContent = "";
-        targetBytes = selectedLimit() * BYTES_PER_MB;
-        const runId = ++generation;
-        const started = new AbortController();
-        activeRequests.add(started);
-        startedAt = performance.now();
-        lastSampleAt = startedAt;
-        lastSampleBytes = 0;
-        setRunning(true);
-        updateDisplay();
-        displayTimer = window.setInterval(updateDisplay, 250);
-
-        try {
-          const session = await createSession(runId, started);
-          if (!session || runId !== generation || !running) return;
-          const chunkLimit = Math.min(MAX_CHUNK_BYTES, session.maxChunkBytes);
-          let nextByte = 0;
-          const reserveChunk = () => {
-            if (!running || runId !== generation || nextByte >= targetBytes) return 0;
-            const bytes = Math.min(chunkLimit, targetBytes - nextByte);
-            nextByte += bytes;
-            return bytes;
-          };
-          const workers = Array.from(
-            { length: Number(connectionsInput.value) },
-            () => runWorker(runId, session.id, reserveChunk),
-          );
-          await Promise.all(workers);
-          if (runId === generation && running) {
-            stopTransfer("LIMIT REACHED");
-          }
-        } catch (error) {
-          if (runId === generation && running && error.name !== "AbortError") {
-            const message = error.message === "Failed to fetch"
-              ? "Could not reach the transfer server. Check its URL, HTTPS certificate, and ALLOWED_ORIGINS CORS setting."
-              : error.message || "The transfer failed. Check that the server is running.";
-            stopTransfer("ERROR", message);
-          }
-        } finally {
-          activeRequests.delete(started);
-        }
-      }
-
-      startButton.addEventListener("click", () => {
-        if (running) {
-          stopTransfer();
-          return;
-        }
-        startTransfer();
-      });
-
-      updateDisplay();
-    })();
-  </script>
 </body>
 </html>

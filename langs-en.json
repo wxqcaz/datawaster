@@ -1,0 +1,18 @@
+{
+  "title": "Data waster",
+  "desc": "The fastest and most efficient way to waste your valuable mobile data.",
+  "downloadLabel": "Download",
+  "uploadLabel": "Upload",
+  "sizeLabel": "Data size (MB, 0 for infinite):",
+  "threadLabel": "Concurrent connections:",
+  "startButton": "Start",
+  "stopButton": "Stop",
+  "totalProgressLabel": "MB total",
+  "downloadProgressLabel": "MB downloaded",
+  "uploadProgressLabel": "MB uploaded",
+  "totalSpeedLabel": "MB/sec",
+  "toggleHint": "Select at least one direction",
+  "invalidSizeError": "Please enter a valid data size.",
+  "slowNetworkWarning": "Your network is not fast enough to efficiently waste your data.",
+  "completionMessage": "Completed {mode} of {size} MB"
+}

@@ -1,9 +1,17 @@
 {
-  "name": "datawaster",
+  "name": "data-waster",
   "version": "1.0.0",
-  "private": true,
-  "description": "A capped real-bandwidth download and upload tool",
+  "description": "The fastest and the most efficient way to waste your valuable mobile data",
+  "main": ".js",
   "scripts": {
-    "start": "node server.js"
-  }
+    "start": "node generate.js"
+  },
+  "keywords": [
+    "entropy",
+    "testing",
+    "data",
+    "random"
+  ],
+  "author": "hletrd",
+  "license": "MIT"
 }
