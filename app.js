@@ -304,10 +304,7 @@ class DataWaster {
             break;
           }
 
-          const remainingNeeded = this.#targetSize - (this.#bytesDownloaded + this.#bytesUploaded);
-          const bytesToCount = Math.min(value.length, remainingNeeded);
-
-          this.#bytesDownloaded += bytesToCount;
+          this.countDownloadedBytes(value.length);
 
           if (this.isComplete()) {
             this.completeOperation();
@@ -373,12 +370,7 @@ class DataWaster {
 
           if (!this.#running) break;
 
-          const remainingNeeded = this.#targetSize - (this.#bytesDownloaded + this.#bytesUploaded);
-          const bytesToCount = this.#targetSize === 0
-            ? value.length
-            : Math.min(value.length, remainingNeeded);
-
-          this.#bytesDownloaded += bytesToCount;
+          this.countDownloadedBytes(value.length);
 
           if (this.isComplete()) {
             this.completeOperation();
@@ -421,6 +413,15 @@ class DataWaster {
         this.uploadChunk(i, threadSize);
       }
     }
+  }
+
+  countDownloadedBytes(bytes) {
+    const remainingBytes = this.#targetSize - (this.#bytesDownloaded + this.#bytesUploaded);
+    const bytesToCount = this.#targetSize === 0
+      ? bytes
+      : Math.min(bytes, Math.max(0, remainingBytes));
+
+    this.#bytesDownloaded += bytesToCount;
   }
 
   async uploadChunk(threadId, size) {
