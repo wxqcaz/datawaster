@@ -16,7 +16,9 @@ Open <http://localhost:3000>. Do not open `index.html` directly: the page needs 
 
 GitHub Pages serves static files only; it cannot run the Node.js transfer API. Deploy this repository's server separately, then enter the server's HTTPS base URL in the **Transfer server URL** field on the Pages site. The setting is saved in that browser. For example, enter `https://datawaster-api.onrender.com` (use the actual URL assigned by your host).
 
-For Render, create a new **Blueprint** from this repository and deploy `render.yaml`. The blueprint allows browser requests from `https://wxqcaz.github.io`. After deployment, copy the service URL into the Pages site's **Transfer server URL** field. If your Pages site uses a different origin, update the server's `ALLOWED_ORIGINS` environment variable to that exact origin, with no path or trailing slash, then redeploy.
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/wxqcaz/datawaster)
+
+Click **Deploy to Render**, sign in or authorize GitHub if prompted, then deploy the `datawaster-api` service. Render creates the server from `render.yaml` and allows browser requests from `https://wxqcaz.github.io`. After deployment, copy its HTTPS service URL once into the Pages site's **Transfer server URL** field. The page remembers it in that browser, so later transfers start with one click. If your Pages site uses a different origin, update the server's `ALLOWED_ORIGINS` environment variable to that exact origin, with no path or trailing slash, then redeploy.
 
 To run the frontend and backend together locally, use `npm start` and open <http://localhost:3000>; leave **Transfer server URL** blank.
 
